@@ -1,0 +1,111 @@
+<html>
+    <head>
+        <title>Cool Site Cheker</title>
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
+        <script src="http://code.jquery.com/jquery-2.1.3.js" type="text/javascript"></script>
+		<script src="/highcharts/js/highcharts.js" type="text/javascript"></script>
+    </head>
+    <body>
+        <br />
+        <div class="container">
+			<div class='row'>
+            <div class="col-md-2">
+
+            </div>
+            <div class="col-md-8 form-group">
+                <input type="text" class="form-control" id="_Url" placeholder="Enter site url" />
+            </div>
+            <div class="col-md-1">
+                <a class="btn btn-default btn-block" id='_Start' href="javascript:;" role="button">Start</a>
+            </div>
+            <div class="col-md-1">
+
+            </div>
+			</div>
+			<div class='row'>
+				<div class='col-md-12'>
+					<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
+				</div>
+			</div>
+        </div>
+
+        <script type="text/javascript">
+            function Process(strDir){
+                $.ajax({
+                    url: '/process.php',
+                    type: 'POST',
+                    data: {
+                        DIR: strDir
+                    },
+                    dataType: 'JSON',
+                    success: function(json){
+						if(typeof chart !== 'undefined'){
+							chart.series[0].setData(json['CHART']);
+						}
+					
+                        if(json['MORE'] === 'Y') {
+                            setTimeout(function () {
+                                Process(strDir);
+                            }, 100);
+                        }
+                        else
+                            window.location.href = '/result.php?DIR=' + strDir;
+                    }
+                });
+            }
+
+            $(document).ready(function(){
+                $("body").on("click", "#_Start", function(){
+                    $.ajax({
+                        url: '/start.php',
+                        type: 'POST',
+                        data: {
+                            URL: $("#_Url").val()
+                        },
+                        dataType: 'JSON',
+                        success: function(json){
+                            if(json['STATUS'] === 'success'){
+                                Process(json['DIR']);
+                            }
+                            else
+                                alert(json['DESC']);
+                        }
+                    });
+                });
+            });
+			
+			var chart = new Highcharts.Chart({
+				chart: {
+					renderTo: "container",
+					plotBackgroundColor: null,
+					plotBorderWidth: null,
+					plotShadow: false
+				},
+				title: {
+					text: 'Статус загрузки'
+				},
+				tooltip: {
+					pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+				},
+				plotOptions: {
+					pie: {
+						allowPointSelect: true,
+						cursor: 'pointer',
+						dataLabels: {
+							enabled: true,
+							format: '<b>{point.name}</b>: {point.percentage:.1f} % ({point.y})',
+							style: {
+								color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+							}
+						}
+					}
+				},
+				series: [{
+					type: 'pie',
+					name: 'Статус загрузки',
+					data: []
+				}]
+			});
+        </script>
+    </body>
+</html>
