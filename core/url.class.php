@@ -51,7 +51,8 @@ class URL{
             'JS'
         ),
         'FILE' => array(
-            'PDF', 'XLS', 'XLSX', 'SWF', 'ZIP', 'RAR'
+            'PDF', 'XLS', 'XLSX', 'SWF', 'ZIP', 'RAR',
+            'EOT', 'WOFF', 'TTF', 'SVG' // Fonts
         ),
         'IMG'  => array(
             'PNG', 'JPG', 'JPEG', 'ICO', 'GIF', 'BMP', 'SVG'
@@ -132,6 +133,26 @@ class URL{
     }
 
     private function Parse(){
+        preg_match_all('/url\((.*?)\)/', $this->strHTML, $arMatches);
+
+        foreach($arMatches[1] as $strMatch){
+            $strMatch = trim(trim($strMatch, '\''), '"');
+
+            if($strMatch !== '')
+                $this->arList[\Core\URL::GetType($strMatch)][] = $strMatch;
+        }
+
+        unset($arMatches);
+
+        preg_match_all('/title\>(.*?)<\/title\>/', $this->strHTML, $arMatches);
+
+        if(isset($arMatches[1]) && isset($arMatches[1][0]))
+            $this->arStatus['TITLE'] = $arMatches[1][0];
+
+        unset($arMatches);
+
+
+
         $clDom = new \DOMDocument;
 
         $clDom->loadHTML($this->strHTML);
@@ -182,6 +203,42 @@ class URL{
                 }
                 else
                     $this->arList[\Core\URL::GetType($strSrc)][] = $strSrc;
+            }
+        }
+
+        foreach($this->arList as $strListName => &$arList){ // TODO: Нужно будет убрать формирование ссылок из самих ссылок, т.к. там оно становится бессмысленной трайтой времени
+            // TODO: Вынести это в отдельную функция по формированию URL'a
+            foreach($arList as &$strUrl){
+                // 2. Смотри, начинается ли ссылка с / - если да, то опять же ничего не делаем.
+                // 3. Если начало с ../ или просто name/ - то вызывает Page::Merge($this->strUrl, $strUrl);
+
+                if(strrpos($strUrl, 'mailto:') !== 0 && strrpos($strUrl, '#') !== 0 && strrpos($strUrl, 'tel:') !== 0 && strrpos($strUrl, 'callto:') !== 0){
+                    $mxdUrlHost = parse_url($strUrl, PHP_URL_HOST);
+                    $isOurURL   = true;
+
+
+                    if ($mxdUrlHost !== NULL) {
+                        if ($mxdUrlHost !== $this->arManifest['DOMAIN'])
+                            $isOurURL = false; // 1. Проверка не внешняя ли это ссылка. Если внешняя - ничего не меняем.
+                    }
+
+                    if($isOurURL){
+                        $strOurPath = parse_url($strUrl, PHP_URL_PATH);
+
+                        if(strpos($strOurPath, '/') !== 0) { // Значит у нас крутой путь. Ничего не будем менять.
+
+                            if(pathinfo($this->strOurPath, PATHINFO_EXTENSION) === '')
+                                $strUrl = \Core\Page::Merge($this->strOurPath . $strOurPath);
+                            else {
+                                $arTmpOurPath  = explode('/', $this->strOurPath);
+                                array_pop($arTmpOurPath);
+                                $strTmpOurPath = '/' . implode('/', $arTmpOurPath) . '/';
+
+                                $strUrl = \Core\Page::Merge($strTmpOurPath . $strOurPath);
+                            }
+                        }
+                    }
+                }
             }
         }
     }

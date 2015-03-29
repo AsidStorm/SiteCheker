@@ -31,7 +31,7 @@ class CURL{
 
 		if($boolBlockTransfer)
 			$this->BlockTransfer();
-		
+
         $this->Request();
     }
 	

@@ -12,6 +12,9 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/core/include.php');
 
 $arFiles = scandir($_SERVER['DOCUMENT_ROOT'] . '/process/' . $_REQUEST['DIR'] . '/checked/');
+$arManifest = json_decode(file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/process/' . $_REQUEST['DIR'] . '/manifest.json'), true);
+
+$arTitles = array();
 
 $strHTML = '';
 
@@ -27,8 +30,17 @@ foreach($arFiles as $strFileName){
             $arJSON['CODE'] = 200;
     }
 
-    if($arJSON['CODE'] === 200)
+    if($arJSON['TYPE'] === \Core\URL::URL && $arJSON['EXTERNAL'] === 'N' && ( !$arJSON['TITLE'] OR ($arJSON['TITLE'] && trim($arJSON['TITLE']) === '')) )
+        $arJSON['CODE'] = -1;
+
+    if(count($arJSON['TRACE']) === 0)
         continue;
+
+    if($arJSON['TITLE'])
+        $arTitles[$arJSON['TITLE']][] = $arJSON['URL'];
+
+    /*if($arJSON['CODE'] === 200)
+        continue;*/
 
     $arJSON['FROM'] = array_unique($arJSON['FROM']);
     $strHTML .= "<tr data-status='" . (((int) $arJSON['CODE'] !== 200) ? 'danger' : 'success') . "' data-code='" . $arJSON['CODE'] . "'>";
@@ -143,6 +155,48 @@ foreach($arFiles as $strFileName){
         </thead>
         <tbody id="_Full">
             <?=$strHTML?>
+            <tr>
+                <th colspan="5" class="text-center">
+                    Заголовки
+                </th>
+            </tr>
+            <?foreach($arTitles as $strTitle => $arUrls){?>
+                <?if(count($arUrls) === 1) continue;?>
+                <?++$intKey;?>
+
+                <tr>
+                    <td colspan="4">
+                        <?=$strTitle?>
+                    </td>
+                    <td>
+                        Используется (<?=count($arUrls)?>) <span class="glyphicon glyphicon-option-horizontal"  data-toggle="modal" data-target="#_<?=$intKey?>_Titles"></span>
+                    </td>
+                </tr>
+
+                <!-- Modal -->
+                <div class="modal fade" id="_<?=$intKey?>_Titles" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">Одинаковый заголовок у страниц</h4>
+                            </div>
+                            <div class="modal-body">
+                                <?foreach($arUrls as $strUrl){?>
+                                    <?if(strrpos($strUrl, $arManifest['DOMAIN']) === false){?>
+                                    <a href='<?=$arManifest['ROOT']?><?=ltrim($strUrl, '/')?>' target='_blank'><?=$strUrl?></a><br />
+                                    <?} else {?>
+                                    <a href='<?=$strUrl?>' target='_blank'><?=$strUrl?></a><br />
+                                    <?}?>
+                                <?}?>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?}?>
         </tbody>
     </table>
     </div>

@@ -2,7 +2,7 @@
 require_once($_SERVER['DOCUMENT_ROOT'] . '/core/include.php');
 
 $arPriority = array(
-    'priority', 'img', 'url', 'css', 'js', 'file'
+    'priority', 'url', 'css', 'js', 'file', 'img'
 );
 
 foreach($arPriority as $strPath){
@@ -55,8 +55,11 @@ if($boolBreak){
 
                         // Шаг 1. Устанавливаем дополнительный FROM
 
-                        if (array_key_exists('FROM', $arSubJSON))
+                        if (array_key_exists('FROM', $arSubJSON)) {
                             $arSubJSON['FROM'][] = $clProcess->GetUrl();
+
+                            $arSubJSON['FROM'] = array_unique($arSubJSON['FROM']);
+                        }
                         else
                             $arSubJSON['FROM'] = array($clProcess->GetUrl());
 
@@ -80,8 +83,11 @@ if($boolBreak){
 
                     // Шаг 1. Устанавливаем дополнительный FROM
 
-                    if (array_key_exists('FROM', $arSubJSON))
+                    if (array_key_exists('FROM', $arSubJSON)) {
                         $arSubJSON['FROM'][] = $clProcess->GetUrl();
+
+                        $arSubJSON['FROM'] = array_unique($arSubJSON['FROM']);
+                    }
                     else
                         $arSubJSON['FROM'] = array($clProcess->GetUrl());
 

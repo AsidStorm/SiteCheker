@@ -18,4 +18,20 @@ class Page{
 
         return $strUrl;
     }
+
+    public static function Merge($strPath, $strSeparator = '/'){
+        $strPath = str_replace(array('/', '\\'), $strSeparator, $strPath);
+
+        $parts     = array_filter(explode($strSeparator, $strPath), 'strlen');
+        $absolutes = array();
+        foreach ($parts as $part) {
+            if ('.' == $part) continue;
+            if ('..' == $part)
+                array_pop($absolutes);
+            else
+                $absolutes[] = $part;
+        }
+
+        return '/' . implode($strSeparator, $absolutes);
+    }
 }

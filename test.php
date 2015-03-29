@@ -1,69 +1,63 @@
-<!DOCTYPE HTML>
-<html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<pre>
+<?
+error_reporting(0);
+include($_SERVER['DOCUMENT_ROOT'] . '/core/include.php');
 
-		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-	</head>
-	<body>
-<script src="/highcharts/js/highcharts.js"></script>
+// Get TITLE
 
-<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
+/*$strHTML = file_get_contents('http://cheker.com/');
 
-		<script type="text/javascript">
-    var chart = new Highcharts.Chart({
-        chart: {
-			renderTo: "container",
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false
-        },
-        title: {
-            text: 'Browser market shares at a specific website, 2014'
-        },
-        tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-        },
-        plotOptions: {
-            pie: {
-                allowPointSelect: true,
-                cursor: 'pointer',
-                dataLabels: {
-                    enabled: true,
-                    format: '<b>{point.name}</b>: {point.percentage:.1f} %1 ',
-                    style: {
-                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-                    }
-                }
-            }
-        },
-        series: [{
-            type: 'pie',
-            name: 'Browser share',
-            data: [
-                ['Firefox',   45.0],
-                ['IE',       26.8],
-                {
-                    name: 'Chrome',
-                    y: 12.8,
-                    sliced: true,
-                    selected: true
-                },
-                ['Safari',    8.5],
-                ['Opera',     6.2],
-                ['Others',   0.7]
-            ]
-        }]
-    });
-	
-	setTimeout(function(){
-		chart.series[0].setData([
-			['Firefox', 10],
-			['IE', 90]
-		], false);
-		chart.redraw();
-	}, 1000);
-		</script>
+preg_match_all('/title\>(.*?)<\/title\>/', $strHTML, $arMatches);
 
-	</body>
-</html>
+print_r($arMatches);*/
+
+/*$clDom = new DOMDocument;
+
+$clDom->loadHTML(file_get_contents('http://cheker.com/'));
+
+$arTitles = $clDom->getElementsByTagName('title');
+
+foreach($arTitles as $clTitle){
+    print htmlentities($clTitle->nodeValue);
+}*/
+
+// Get FROM HTML
+
+/*$strHTML = file_get_contents('http://www.skoda-avto.ru/models/new-octavia-rs/overview-page');
+
+preg_match_all('/url\((.*?)\)/', $strHTML, $arMatches);
+
+print_r($arMatches); // $arMatches[1] - Contains URLs
+
+print "End";*/
+
+// Get from CSS
+
+/*$strHTML = file_get_contents('http://master.vw-dealer.ru/bitrix/templates/vw4d/css/style.css');
+
+preg_match_all('/url\((.*?)\)/', $strHTML, $arMatches);
+
+print_r($arMatches); // $arMatches[1] - Contains URLs
+
+foreach($arMatches[1] as $strMatch){
+    print trim(trim($strMatch, '\''), '"') . "<br />";
+}*/
+
+/*$clDom = new DOMDocument;
+
+$clDom->loadHTML(file_get_contents('http://master.vw-dealer.ru/'));
+
+$arMeta = $clDom->getElementsByTagName('meta');
+
+foreach($arMeta as $clMeta){
+    $strType = strtolower($clMeta->getAttribute('name'));
+
+    if($strType === 'keywords' OR $strType === 'description')
+        print $clMeta->getAttribute('content');
+}*/
+
+print_r(parse_url(\Core\Page::Merge('/test/abc/../mail/test.htm')));
+print "End";
+
+var_dump(pathinfo('/core/abc/', PATHINFO_EXTENSION));
+var_dump(pathinfo('/core/abs/test.htm', PATHINFO_EXTENSION));
