@@ -3,6 +3,12 @@
 error_reporting(0);
 include($_SERVER['DOCUMENT_ROOT'] . '/core/include.php');
 
+$strPage = '/dir/';
+
+$arLinks = array(
+
+);
+
 // Get TITLE
 
 /*$strHTML = file_get_contents('http://cheker.com/');
@@ -56,8 +62,8 @@ foreach($arMeta as $clMeta){
         print $clMeta->getAttribute('content');
 }*/
 
-print_r(parse_url(\Core\Page::Merge('/test/abc/../mail/test.htm')));
+/*print_r(parse_url(\Core\Page::Merge('/test/abc/../mail/test.htm')));
 print "End";
 
 var_dump(pathinfo('/core/abc/', PATHINFO_EXTENSION));
-var_dump(pathinfo('/core/abs/test.htm', PATHINFO_EXTENSION));
+var_dump(pathinfo('/core/abs/test.htm', PATHINFO_EXTENSION));*/

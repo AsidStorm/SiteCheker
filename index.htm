@@ -60,7 +60,8 @@
                         url: '/start.php',
                         type: 'POST',
                         data: {
-                            URL: $("#_Url").val()
+                            URL: $("#_Url").val(),
+                            CLEAR_START: 'Y'
                         },
                         dataType: 'JSON',
                         success: function(json){

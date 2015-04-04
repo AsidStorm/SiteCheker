@@ -151,8 +151,6 @@ class URL{
 
         unset($arMatches);
 
-
-
         $clDom = new \DOMDocument;
 
         $clDom->loadHTML($this->strHTML);
@@ -208,7 +206,15 @@ class URL{
 
         foreach($this->arList as $strListName => &$arList){ // TODO: Нужно будет убрать формирование ссылок из самих ссылок, т.к. там оно становится бессмысленной трайтой времени
             // TODO: Вынести это в отдельную функция по формированию URL'a
-            foreach($arList as &$strUrl){
+            foreach($arList as $intKey => &$strUrl){
+                $strUrl = trim($strUrl);
+
+                if($strUrl === ''){
+                    unset($arList[$intKey]);
+                    continue;
+                }
+
+
                 // 2. Смотри, начинается ли ссылка с / - если да, то опять же ничего не делаем.
                 // 3. Если начало с ../ или просто name/ - то вызывает Page::Merge($this->strUrl, $strUrl);
 

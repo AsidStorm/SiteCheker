@@ -11,7 +11,13 @@ if(!empty($_REQUEST['URL'])){
     $strDirPath  = md5($_REQUEST['URL']);
     $strFullPath = $_SERVER['DOCUMENT_ROOT'] . '/process/' . $strDirPath;
 
-    unlink($_SERVER['DOCUMENT_ROOT'] . '/log.txt');
+    if($_REQUEST['CLEAR_START'] === 'Y'){
+        foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($strFullPath, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST) as $clPath) {
+            $clPath->isDir() && !$clPath->isLink() ? rmdir($clPath->getPathname()) : unlink($clPath->getPathname());
+        }
+
+        rmdir($strFullPath);
+    }
 
     if(!is_dir($strFullPath)) {
         mkdir($strFullPath);
