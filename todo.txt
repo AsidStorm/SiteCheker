@@ -29,39 +29,9 @@
 
 TODO: Fixed. Have higher priority
 
-1.
-
-http://mst-dc1.ford-dws.ru/future_models/mustang/ - Fonts parses link our url
-
-@font-face {
-	font-family: 'fordngbs-antenna';
-	src: url( http://www.ford.com/global/2015mustang/fonts/Antenna/regular/regular.eot); /* IE */
-	src: local(УЂЫТК), /* non-IE */
-		url( http://www.ford.com/global/2015mustang/fonts/Antenna/regular/regular.woff) format("woff"),
-		url( http://www.ford.com/global/2015mustang/fonts/Antenna/regular/regular.ttf) format("truetype"),
-		url( http://www.ford.com/global/2015mustang/fonts/Antenna/regular/regular.svg#webfont3RmT6iw4) format("svg");
-}
-
-2. Какая-то фигня происходит с:
-
-Происходит из-за того, что по ссылке с пробелом так же что-то отдаётся. И дальше по цепочке всё рушится.
-Вывод - нужно делать trim(); Ссылкам.
-
-/models/focus/compare/ /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars /models/focus/available_cars
-
 3. Нужно что-то придумать с капчей: (Она парсится как URL - Переход по ссылке. У которой нету тайтла)
 
 /bitrix/tools/captcha.php?captcha_sid=09048281dc114a044cd0570430636586
-
-4. Попытка вытянуть base64 иображение.
-
-/bitrix/templates/ford_dws/css/image/png;base64,
-
-/template_2bf9d8bca64094e7f1340c055e33c987/image/gif;base64
-
-5. 	http://mst-dc1.ford-dws.ru/models/kuga/overview/
-
-Ссылка превратилась в /models/kuga/overviewtech. Т.к. она БЕЗ / в начале.
 
 6. Выводить в result.php только инфу в таблице. Модальные окна делаем по AJAX запросу. Это убыстрит генерацию полного отчёта.
 

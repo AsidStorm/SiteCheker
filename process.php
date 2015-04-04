@@ -23,7 +23,7 @@ foreach($arPriority as $strPath){
 if($boolBreak){
     $strJSON      = file_get_contents($strFullPath . '/' . $strFileName);
     $arJSON       = json_decode($strJSON, true);
-
+print_r($arJSON);
     if(!$arJSON['CLASS'] OR !$arJSON['URL']){
         print json_encode(array(
             'STATUS' => 'success',
@@ -43,7 +43,9 @@ if($boolBreak){
 
     foreach($arPriority as $strRealFolder){
         if(isset($arList[strtoupper($strRealFolder)]) && count($arList[strtoupper($strRealFolder)]) > 0) {
-            foreach($arList[strtoupper($strRealFolder)] as $strUrl) {
+            foreach($arList[strtoupper($strRealFolder)] as $arUrl) {
+                $strUrl = $arUrl['URL'];
+
                 $strSubFileName = md5($strUrl) . '.json';
                 $boolFileFound = false;
 
@@ -109,16 +111,15 @@ if($boolBreak){
                     $arTrace = (is_array($arJSON['TRACE'])) ? $arJSON['TRACE'] : array();
                     $arTrace[] = $clProcess->GetUrl();
 
-                    if(strtoupper($strRealFolder) === 'PRIORITY') // Обрабатываем приоритетные ссылки
-                        $strRealFolder = \Core\URL::GetType($strUrl);
-
                     fwrite($objFile, json_encode(array(
-                        'CLASS' => strtoupper($strRealFolder),
-                        'FROM' => array(
+                        'CLASS' => strtoupper($arUrl['TYPE']),
+                        'FROM'  => array(
                             $clProcess->GetUrl()
                         ),
-                        'URL' => $strUrl,
-                        'TRACE' => $arTrace
+                        'URL'   => $strUrl,
+                        'TRACE' => $arTrace,
+                        'TRIM'  => $arUrl['TRIM'],
+                        'OUR'   => $arUrl['OUR']
                     )));
 
                     fclose($objFile);

@@ -15,10 +15,7 @@ class CSS{
 
     private $isOurUrl = true;
 
-    private $arList = array(
-        'IMG'  => array(),
-        'FILE' => array()
-    );
+    private $arList = array();
 
     private $arStatus = array(
         'CODE'     => '',
@@ -55,20 +52,20 @@ class CSS{
     }
 
     private function Request(){
-        $strUrl = $this->strUrl;
+        $strUrl = $this->strUrl; // TODO: Move it to single function
 
         if($this->isOurUrl) {
             if(strpos($this->strOurPath, '/') === 0)
-                $strUrl = rtrim($this->arManifest['ROOT'], '/') . '/' . (($this->strOurPath === '/') ? '' : (ltrim($this->strOurPath, '/')));
+                $strUrl = rtrim($this->arManifest['ROOT'], '/') . '/' . (($this->strOurPath === '/') ? '' : (rtrim(ltrim($this->strOurPath, '/'), '/') . '/'));
             else {
                 $strTrace = $this->arJSON['TRACE'][(count($this->arJSON['TRACE']) - 1)];
-                $strUrl = rtrim($strTrace, '/') . '/' . (($this->strOurPath === '/') ? '' : (ltrim($this->strOurPath, '/')));
+                $strUrl = rtrim($strTrace, '/') . '/' . (($this->strOurPath === '/') ? '' : (rtrim(ltrim($this->strOurPath, '/'), '/') . '/'));
             }
         }
 
         $this->strUrl = $strUrl;
 
-        $clCURL = new \Core\CURL($strUrl);
+        $clCURL = new \Core\CURL($this->strUrl);
 
         $this->arStatus['CODE']     = $clCURL->GetCode();
         $this->arStatus['REDIRECT'] = $clCURL->GetTrace();
@@ -76,54 +73,10 @@ class CSS{
         if($clCURL->GetCode() === 200){
             preg_match_all('/url\((.*?)\)/', $clCURL->GetHTML(), $arMatches);
 
-            foreach($arMatches[1] as $strMatch){
-                $strMatch = trim(trim($strMatch, '\''), '"');
+            foreach($arMatches[1] as $strMatch)
+                $this->arList[] = trim(trim($strMatch, '\''), '"');
 
-                if($strMatch !== '')
-                    $this->arList[\Core\URL::GetType($strMatch)][] = $strMatch;
-            }
-        }
-
-        foreach($this->arList as $strListName => &$arList){ // TODO: Нужно будет убрать формирование ссылок из самих ссылок, т.к. там оно становится бессмысленной трайтой времени
-            // TODO: Вынести это в отдельную функция по формированию URL'a
-            foreach($arList as $intKey => &$strUrl){
-                $strUrl = trim($strUrl);
-                if($strUrl === ''){
-                    unset($arList[$intKey]);
-                    continue;
-                }
-
-                // 2. Смотри, начинается ли ссылка с / - если да, то опять же ничего не делаем.
-                // 3. Если начало с ../ или просто name/ - то вызывает Page::Merge($this->strUrl, $strUrl);
-
-                if(strrpos($strUrl, 'mailto:') !== 0 && strrpos($strUrl, '#') !== 0 && strrpos($strUrl, 'tel:') !== 0 && strrpos($strUrl, 'callto:') !== 0){
-                    $mxdUrlHost = parse_url($strUrl, PHP_URL_HOST);
-                    $isOurURL   = true;
-
-
-                    if ($mxdUrlHost !== NULL) {
-                        if ($mxdUrlHost !== $this->arManifest['DOMAIN'])
-                            $isOurURL = false; // 1. Проверка не внешняя ли это ссылка. Если внешняя - ничего не меняем.
-                    }
-
-                    if($isOurURL){
-                        $strOurPath = parse_url($strUrl, PHP_URL_PATH);
-
-                        if(strpos($strOurPath, '/') !== 0) { // Значит у нас крутой путь. Ничего не будем менять.
-
-                            if(pathinfo($this->strOurPath, PATHINFO_EXTENSION) === '')
-                                $strUrl = \Core\Page::Merge($this->strOurPath . $strOurPath);
-                            else {
-                                $arTmpOurPath  = explode('/', $this->strOurPath);
-                                array_pop($arTmpOurPath);
-                                $strTmpOurPath = '/' . implode('/', $arTmpOurPath) . '/';
-
-                                $strUrl = \Core\Page::Merge($strTmpOurPath . $strOurPath);
-                            }
-                        }
-                    }
-                }
-            }
+            $this->arList = \Core\Url::ParseList($this->arList, $this->strOurPath, $this->arManifest['DOMAIN']);
         }
 
         $this->Finish();

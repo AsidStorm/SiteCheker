@@ -26,15 +26,7 @@ class URL{
 
     private $strHTML;
 
-    private $arList = array(
-        'JS'   => array(),
-        'CSS'  => array(),
-        'IMG'  => array(),
-        'URL'  => array(),
-        'FILE' => array(),
-
-        'PRIORITY' => array()
-    );
+    private $arList = array();
 
     private $arStatus = array(
         'CODE'     => false,
@@ -57,6 +49,12 @@ class URL{
         'IMG'  => array(
             'PNG', 'JPG', 'JPEG', 'ICO', 'GIF', 'BMP', 'SVG'
         )
+    );
+
+    public static $arSkipped = array( // Список игнорируемых файлов
+        'image/png;base64',
+        'image/gif;base64',
+        'javascript:;'
     );
 
     private $arManifest;
@@ -135,12 +133,10 @@ class URL{
     private function Parse(){
         preg_match_all('/url\((.*?)\)/', $this->strHTML, $arMatches);
 
-        foreach($arMatches[1] as $strMatch){
-            $strMatch = trim(trim($strMatch, '\''), '"');
-
-            if($strMatch !== '')
-                $this->arList[\Core\URL::GetType($strMatch)][] = $strMatch;
-        }
+        foreach($arMatches[1] as $strMatch)
+            $this->arList[] = array(
+                'URL' => trim(trim($strMatch, '\''), '"')
+            );
 
         unset($arMatches);
 
@@ -157,54 +153,34 @@ class URL{
 
         $arURLs = $clDom->getElementsByTagName('a');
 
-        foreach($arURLs as $clUrl){
-            $strHref = $clUrl->getAttribute('href');
-
-            if($strHref !== '' && $strHref !== 'javascript:;')
-                $this->arList[\Core\URL::GetType($strHref)][] = $strHref;
-        }
+        foreach($arURLs as $clUrl)
+            $this->arList[] = array(
+                'URL' => $clUrl->getAttribute('href')
+            );
 
         $arIMGs = $clDom->getElementsByTagName('img');
 
-        foreach($arIMGs as $clImg){
-            $strSrc = $clImg->getAttribute('src');
-
-            if($strSrc !== '')
-                $this->arList[\Core\URL::GetType($strSrc)][] = $strSrc;
-        }
+        foreach($arIMGs as $clImg)
+            $this->arList[] = array(
+                'URL' => $clImg->getAttribute('src')
+            );
 
         $arCSSs = $clDom->getElementsByTagName('link');
 
-        foreach($arCSSs as $clCss){
-            $strHref = $clCss->getAttribute('href');
-
-            if($strHref !== ''){
-                if(strrpos($strHref, 'x/cache/') !== false){
-                    $strHref = array_shift(explode('?', $strHref)); // Убираем ?time()
-
-                    $this->arList['PRIORITY'][] = $strHref;
-                }
-                else
-                    $this->arList[\Core\URL::GetType($strHref)][] = $strHref;
-            }
-        }
+        foreach($arCSSs as $clCss)
+            $this->arList[] = array(
+                'URL' => $clCss->getAttribute('href')
+            );
 
         $arJSs = $clDom->getElementsByTagName('script');
-        foreach($arJSs as $clJs){
-            $strSrc = $clJs->getAttribute('src');
+        foreach($arJSs as $clJs)
+            $this->arList[] = array(
+                'URL' => $clJs->getAttribute('src')
+            );
 
-            if($strSrc !== ''){
-                if(strrpos($strSrc, 'x/cache/') !== false){
-                    $strSrc = array_shift(explode('?', $strSrc)); // Убираем ?time()
+        $this->arList = self::ParseList($this->arList, $this->strOurPath, $this->arManifest['DOMAIN']);
 
-                    $this->arList['PRIORITY'][] = $strSrc;
-                }
-                else
-                    $this->arList[\Core\URL::GetType($strSrc)][] = $strSrc;
-            }
-        }
-
-        foreach($this->arList as $strListName => &$arList){ // TODO: Нужно будет убрать формирование ссылок из самих ссылок, т.к. там оно становится бессмысленной трайтой времени
+        /*foreach($this->arList as $strListName => &$arList){ // TODO: Нужно будет убрать формирование ссылок из самих ссылок, т.к. там оно становится бессмысленной трайтой времени
             // TODO: Вынести это в отдельную функция по формированию URL'a
             foreach($arList as $intKey => &$strUrl){
                 $strUrl = trim($strUrl);
@@ -246,7 +222,7 @@ class URL{
                     }
                 }
             }
-        }
+        }*/
     }
 
     public static function GetType($strUrl){
@@ -260,6 +236,110 @@ class URL{
         }
 
         return 'URL';
+    }
+
+    public static function ParseList($arList, $strCurPath, $strDomain){
+        $arResult = array(
+            'CSS'      => array(),
+            'JS'       => array(),
+            'PRIORITY' => array(),
+            'URL'      => array(),
+            'IMG'      => array(),
+            'FILE'     => array()
+        );
+
+        foreach($arList as $arUrl){
+            $arItem = array(
+                'URL'  => '',
+                'TRIM' => 'N',
+                'TYPE' => 'URL',
+                'OUR'  => 'Y'
+            );
+
+            $strUrl = $arUrl['URL'];
+            $arItem = array_merge($arItem, $arUrl);
+
+            // Шаг 0. Определяем тип ресурса.
+
+            $arItem['TYPE'] = self::GetType($strUrl);
+
+            // Шаг 1. Обрезаем ? часть. И # часть.
+
+            if($arItem['TYPE'] === 'CSS' OR $arItem['TYPE'] === 'JS'){ // Нам необходимо распарсиваться конструкции вида ?v=XXX ?time(), и не индексировать их дважды
+
+            }
+
+            //$strUrl = array_shift(explode('?', $strUrl));
+            //$strUrl = array_shift(explode("#", $strUrl));
+
+            // Шаг 2. Удаляем лишние пробелы. Если ссылка изменилась, помечаем это в журнал.
+            $strTmpUrl = trim($strUrl);
+
+            if($strTmpUrl !== $strUrl){
+                $arItem['TRIM'] = 'Y';
+                $strUrl         = $strTmpUrl;
+            }
+
+            if($strUrl === '') // Пропускаем пустую ссылку
+                continue;
+
+            // Шаг 3. не проверяем определённого типа ссылки (Например - image/gif)
+            $boolSkip = false;
+            foreach(self::$arSkipped as $strSkipped){
+                if(strpos($strUrl, $strSkipped) === 0){
+                    $boolSkip = true;
+                    break;
+                }
+            }
+
+            if(!$boolSkip) {
+                $mxdUrlHost = parse_url($strUrl, PHP_URL_HOST);
+                $isOurURL   = true;
+
+                // Шаг 4. Проверяем привязку к URL'y
+
+                if ($mxdUrlHost !== NULL) {
+                    if ($mxdUrlHost !== $strDomain)
+                        $isOurURL = false; // 1. Проверка не внешняя ли это ссылка. Если внешняя - ничего не меняем.
+                }
+
+                $arItem['URL'] = $strUrl;
+
+
+                if(strpos($strUrl, 'mailto:') !== 0 && strpos($strUrl, '#') !== 0 && strpos($strUrl, 'tel:') !== 0 && strpos($strUrl, 'callto:') !== 0) {
+
+                    if ($isOurURL) {
+                        $strOurPath = parse_url($strUrl, PHP_URL_PATH);
+
+                        if(strpos($strOurPath, '/') !== 0){ // Если у нас не ссылка вида /NAME
+                            if(strrpos($strCurPath, '/') === (strlen($strCurPath)-1)) { // Если у нас последний символ в строке - /
+                            }
+                            else{ // В противном случае. Нам нужно определить - является ли страница вида /page.EXT или у нас просто страница.
+                                if(pathinfo($strCurPath, PATHINFO_EXTENSION) === ''){ // Мы находимся на странице
+                                    $strCurPath .= '/'; // Необходимо добавить обратный слеш для корректной обработки страницы.
+                                }
+                                else{ // В случае, если у нас страница - то нужно её распарсить по-другому
+                                    $arTmpStrPage = explode('/', $strCurPath);
+                                    array_pop($arTmpStrPage);
+                                    $strCurPath = '/' . implode('/', $arTmpStrPage) . '/';
+                                }
+                            }
+
+                            $arItem['URL'] = \Core\Page::Merge($strCurPath . $strUrl);
+                        }
+                    }
+                    else
+                        $arItem['OUR'] = 'N';
+                }
+
+                if(strrpos($strUrl, 'cache') !== false)
+                    $arResult['PRIORITY'][] = $arItem;
+                else
+                    $arResult[$arItem['TYPE']][] = $arItem;
+            }
+        }
+
+        return $arResult;
     }
 
     private function Finish(){
