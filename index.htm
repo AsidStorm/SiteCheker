@@ -27,6 +27,7 @@
 					<div id="container" style="min-width: 310px; height: 400px; max-width: 600px; margin: 0 auto"></div>
 				</div>
 			</div>
+            <div class="row place-row"></div>
         </div>
 
         <script type="text/javascript">
@@ -46,10 +47,16 @@
                         if(json['MORE'] === 'Y') {
                             setTimeout(function () {
                                 Process(strDir);
-                            }, 100);
+                            }, 1000);
+
+                            if($(".data-row").length === 10)
+                                $(".data-row:last").remove();
+
+                            $(".place-row").after('<div class="row data-row"><div class="col-md-6">' + json['SCANNED'] + '</div><div class="col-md-6">' + json['TRACE'] + '</div></div>');
                         }
-                        else
+                        else {
                             window.location.href = '/result.php?DIR=' + strDir;
+                        }
                     }
                 });
             }
