@@ -1,11 +1,27 @@
 <pre>
 <?
-error_reporting(0);
+//error_reporting(0);
 include($_SERVER['DOCUMENT_ROOT'] . '/core/include.php');
 
-//error_reporting(E_ALL);
+error_reporting(E_ALL);
 
-preg_match_all('/url\((.*?)\)/', file_get_contents('http://mst-dc1.ford-dws.ru/models/ranger/comps/xl/'), $arMatches);
+$clProcess = new \Core\URL(array(
+    'URL' => '/',
+    'OUR' => 'Y',
+    'TRACE' => array(
+        '/',
+        '/test/style.css'
+    )
+), array(
+    'ROOT' => 'http://mst-dc1.ford-dws.ru/'
+));
+
+
+
+
+die();
+
+preg_match_all('/url\((.*?)\)/', file_get_contents('http://mst-dc1.ford-dws.ru/'), $arMatches);
 
 foreach($arMatches[1] as $strMatch)
     $arList[] = array(
@@ -14,7 +30,7 @@ foreach($arMatches[1] as $strMatch)
 
 unset($arMatches);
 
-preg_match_all('/title\>(.*?)<\/title\>/', file_get_contents('http://mst-dc1.ford-dws.ru/models/ranger/comps/xl/'), $arMatches);
+preg_match_all('/title\>(.*?)<\/title\>/', file_get_contents('http://mst-dc1.ford-dws.ru/'), $arMatches);
 
 if(isset($arMatches[1]) && isset($arMatches[1][0])){
     print 'Title: ' . $arMatches[1][0];
@@ -24,7 +40,7 @@ unset($arMatches);
 
 $clDom = new \DOMDocument;
 
-$clDom->loadHTML(file_get_contents('http://mst-dc1.ford-dws.ru/models/ranger/comps/xl/'));
+$clDom->loadHTML(file_get_contents('http://mst-dc1.ford-dws.ru/'));
 
 $arMeta = $clDom->getElementsByTagName('meta');
 
@@ -44,7 +60,11 @@ $arURLs = $clDom->getElementsByTagName('a');
 
 foreach($arURLs as $clUrl)
     $arList[] = array(
-        'URL' => $clUrl->getAttribute('href')
+        'URL' => $clUrl->getAttribute('href'),
+        '__I' => array(
+            'TARGET' => $clUrl->getAttribute('target'),
+            'REL'    => $clUrl->getAttribute('rel')
+        )
     );
 
 $arIMGs = $clDom->getElementsByTagName('img');
@@ -58,18 +78,40 @@ $arCSSs = $clDom->getElementsByTagName('link');
 
 foreach($arCSSs as $clCss)
     $arList[] = array(
-        'URL' => $clCss->getAttribute('href')
+        'URL' => $clCss->getAttribute('href'),
+        '__I' => array(
+            'REL' => $clCss->getAttribute('rel')
+        )
     );
 
 $arJSs = $clDom->getElementsByTagName('script');
 foreach($arJSs as $clJs)
     $arList[] = array(
-        'URL' => $clJs->getAttribute('src')
+        'URL' => $clJs->getAttribute('src'),
+        '__I' => array(
+            'TYPE' => $clJs->getAttribute('type')
+        )
     );
 
 $arList = \Core\Url::ParseList($arList, '/models/ranger/comps/xl/', 'http://mst-dc1.ford-dws.ru/');
 
-print_r($arList);
+foreach($arList as $arSubList){
+    foreach($arSubList as $arItem){
+
+        // На данном этапе. Нам нужно сформировать реальный URL. И это будет завершающий этап.
+        $strUrl = $arItem['URL'];
+
+        if($arItem['OUR'] === 'Y'){
+            $strOurPath = parse_url($strUrl, PHP_URL_PATH);
+
+            $strUrl = 'http://mst-dc1.ford-dws.ru/' . ltrim($strOurPath, '/');
+        }
+
+        print $strUrl . "<br />";
+    }
+}
+
+//print_r($arList);
 
 /*$strPage = '/dir/test/';
 

@@ -2,6 +2,8 @@
 error_reporting(0);
 
 $arClasses = array(
+    'item',
+
     'css', 'img', 'js', 'url', 'file',
     'page',
     'curl'

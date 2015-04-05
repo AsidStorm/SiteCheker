@@ -129,7 +129,8 @@ if(!empty($_REQUEST['URL'])){
 
         fwrite($objFile, json_encode(array(
             'CLASS' => 'URL',
-            'URL'   => $arManifest['ROOT_PAGE']
+            'URL'   => $arManifest['ROOT_PAGE'],
+            'OUR'   => 'Y'
         )));
 
         fclose($objFile);

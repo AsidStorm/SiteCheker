@@ -39,8 +39,8 @@ foreach($arFiles as $strFileName){
     if($arJSON['TITLE'])
         $arTitles[$arJSON['TITLE']][] = $arJSON['URL'];
 
-    /*if($arJSON['CODE'] === 200)
-        continue;*/
+    if($arJSON['CODE'] === 200)
+        continue;
 
     $arJSON['FROM'] = array_unique($arJSON['FROM']);
     $strHTML .= "<tr data-status='" . (((int) $arJSON['CODE'] !== 200) ? 'danger' : 'success') . "' data-code='" . $arJSON['CODE'] . "'>";

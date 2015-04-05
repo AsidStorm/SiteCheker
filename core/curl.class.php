@@ -46,8 +46,6 @@ class CURL{
         curl_setopt_array($ch, $this->arOptions);
 
         $content = curl_exec($ch);
-        $err     = curl_errno($ch);
-        $errmsg  = curl_error($ch);
         $header  = curl_getinfo($ch);
 
         curl_close($ch);

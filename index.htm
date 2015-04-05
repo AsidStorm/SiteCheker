@@ -47,9 +47,9 @@
                         if(json['MORE'] === 'Y') {
                             setTimeout(function () {
                                 Process(strDir);
-                            }, 1000);
+                            }, 100);
 
-                            if($(".data-row").length === 10)
+                            if($(".data-row").length >= 10)
                                 $(".data-row:last").remove();
 
                             $(".place-row").after('<div class="row data-row"><div class="col-md-6">' + json['SCANNED'] + '</div><div class="col-md-6">' + json['TRACE'] + '</div></div>');
